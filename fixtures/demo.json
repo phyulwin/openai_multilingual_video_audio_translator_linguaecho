@@ -1,0 +1,70 @@
+{
+  "name": "A little place in the world · Demo",
+  "filename": "demo.mp4",
+  "kind": "video",
+  "duration": 24.395238095238096,
+  "source_language": "ja",
+  "segments": [
+    {
+      "id": 1,
+      "start": 0.5,
+      "end": 4.203492063492064,
+      "original_text": "こんにちは。今日はいい天気ですね。",
+      "favorite": false
+    },
+    {
+      "id": 2,
+      "start": 4.703492063492064,
+      "end": 7.711882086167801,
+      "original_text": "この場所はとても特別なんです。",
+      "favorite": false
+    },
+    {
+      "id": 3,
+      "start": 8.211882086167801,
+      "end": 11.570022675736961,
+      "original_text": "私たちはいつもここで話をします。",
+      "favorite": false
+    },
+    {
+      "id": 4,
+      "start": 12.070022675736961,
+      "end": 16.108072562358277,
+      "original_text": "季節が変わっても、変わらないものがあります。",
+      "favorite": false
+    },
+    {
+      "id": 5,
+      "start": 16.608072562358277,
+      "end": 19.696643990929704,
+      "original_text": "きっと、どこかでまた会えますよ。",
+      "favorite": false
+    },
+    {
+      "id": 6,
+      "start": 20.196643990929704,
+      "end": 23.395238095238096,
+      "original_text": "それまで、元気でいてくださいね。",
+      "favorite": false
+    }
+  ],
+  "translations": {
+    "en": {
+      "texts": {
+        "1": "Hello. It is a beautiful day today.",
+        "2": "This place is very special to me.",
+        "3": "We always talk here.",
+        "4": "Even when the seasons change, some things never change.",
+        "5": "I am sure we will meet again someday.",
+        "6": "Until then, please take care."
+      },
+      "audio": {},
+      "voice": "coral"
+    }
+  },
+  "favorite": false,
+  "demo": true,
+  "status": "ready",
+  "progress": 100,
+  "message": "Offline demo ready — scripted text and local synthetic voices, not live AI."
+}

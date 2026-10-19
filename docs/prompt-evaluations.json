@@ -1,0 +1,40 @@
+[
+  {
+    "source": "en",
+    "target": "es",
+    "input": "Break a leg!",
+    "expected_meaning": "A wish for good luck; no literal injury",
+    "ids": [
+      1
+    ]
+  },
+  {
+    "source": "ja",
+    "target": "en",
+    "input": "お疲れさまでした。",
+    "expected_meaning": "Acknowledgment or thanks for someone's work",
+    "ids": [
+      1
+    ]
+  },
+  {
+    "source": "ar",
+    "target": "en",
+    "input": "أهلاً وسهلاً.",
+    "expected_meaning": "A friendly welcome",
+    "ids": [
+      1
+    ]
+  },
+  {
+    "source": "en",
+    "target": "fr",
+    "input": "Open a new branch. Commit your changes.",
+    "context": "software version control",
+    "expected_meaning": "Create a Git branch and record a commit; retain both sentences",
+    "ids": [
+      1,
+      2
+    ]
+  }
+]
