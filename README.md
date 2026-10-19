@@ -6,6 +6,8 @@ A complete local application for learning from uploaded video and audio: timed t
 
 ## Features and problem statement
 
+A student watching a Korean interview can upload the video, translate the speech into Spanish or English, and listen to each original Korean sentence followed by its AI-generated translation. This helps users understand foreign-language content while preserving the original speaker's voice and context.
+
 Understanding foreign-language media should not require losing the original speaker or constantly rewinding. LinguaEcho connects each original sentence to its translation and lets the listener control their order.
 
 - Real drag/drop uploads, progress, cancellation, FFprobe validation, preview, and a configurable 200 MB limit.

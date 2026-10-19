@@ -240,7 +240,7 @@ export default function App() {
           </span>
         </button>
         <nav aria-label="Main navigation">
-          {["Home", "Upload Media", "My Library", "Features", "Help"].map(
+          {["Features", "Help"].map(
             (n) => (
               <button
                 key={n}
@@ -252,10 +252,6 @@ export default function App() {
             ),
           )}
         </nav>
-        <span className="local-label">
-          <span />
-          Your local listening space
-        </span>
       </header>
       <section className="hero">
         <div className="hero-copy">
@@ -336,15 +332,6 @@ export default function App() {
               </li>
             </ul>
             <Flower2 className="postcard-flower" />
-          </div>
-          <div className="side-photo">
-            <p>
-              New perspectives,
-              <br />
-              one sentence
-              <br />
-              at a time.
-            </p>
           </div>
         </aside>
         <main>
@@ -789,46 +776,6 @@ export default function App() {
           )}
         </main>
         <aside className="right-sidebar">
-          <Panel
-            title="Your recent stories"
-            extra={
-              <button onClick={() => navigate("My Library")}>View all →</button>
-            }
-          >
-            <div className="recent-list">
-              {projects.slice(0, 4).map((p) => (
-                <button
-                  key={p.id}
-                  className="recent-file"
-                  onClick={() => open(p)}
-                >
-                  <span
-                    className={`file-thumb ${p.kind === "audio" ? "audio" : ""}`}
-                  >
-                    {p.kind === "audio" && <Headphones />}
-                  </span>
-                  <span>
-                    <strong>{p.name}</strong>
-                    <small>
-                      {time(p.duration)} ·{" "}
-                      {p.demo
-                        ? "Demo"
-                        : new Date(p.created_at).toLocaleDateString()}
-                    </small>
-                  </span>
-                </button>
-              ))}
-              {!projects.length && (
-                <div className="recent-empty">
-                  <FolderHeart size={27} />
-                  <p>A home for your discoveries.</p>
-                  <button onClick={demo} disabled={busy}>
-                    Open a sample story →
-                  </button>
-                </div>
-              )}
-            </div>
-          </Panel>
           <Panel title="Welcome formats">
             <div className="format-icons">
               <Video />
@@ -849,41 +796,11 @@ export default function App() {
             </p>
           </Panel>
           <ExportPanel project={project} target={target} notify={setNotice} />
-          <Panel title="A little more understanding">
-            <button
-              className="use-case rose"
-              onClick={() => navigate("Learning Tools")}
-            >
-              <GraduationCap size={29} />
-              <span>
-                <strong>Language learning</strong>
-                <small>Listen, repeat, and let it sink in.</small>
-              </span>
-            </button>
-            <button
-              className="use-case sage"
-              onClick={() => navigate("Features")}
-            >
-              <Globe2 size={29} />
-              <span>
-                <strong>Stories without borders</strong>
-                <small>Get closer to every word.</small>
-              </span>
-            </button>
-            <button className="use-case peach" onClick={() => navigate("Help")}>
-              <Headphones size={29} />
-              <span>
-                <strong>Your listening ritual</strong>
-                <small>A little practice, every day.</small>
-              </span>
-            </button>
-          </Panel>
+          
           <div className="privacy-note">
             <CheckCircle2 size={15} />
             <span>
               Saved locally. No account needed.
-              <br />
-              AI voices are clearly synthetic.
             </span>
           </div>
         </aside>
@@ -895,18 +812,6 @@ export default function App() {
             Lingua<span>Echo</span>
             <small>Multilingual Video & Audio Player</small>
           </div>
-        </div>
-        <div>
-          <strong>Explore</strong>
-          <button onClick={() => navigate("Features")}>Features</button>
-          <button onClick={() => navigate("My Library")}>My library</button>
-        </div>
-        <div>
-          <strong>A little guidance</strong>
-          <button onClick={() => navigate("Help")}>Getting started</button>
-          <button onClick={() => navigate("Learning Tools")}>
-            Learning tools
-          </button>
         </div>
         <div className="footer-note">
           More understanding,
