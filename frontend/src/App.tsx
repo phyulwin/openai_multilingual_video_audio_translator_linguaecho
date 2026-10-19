@@ -59,10 +59,8 @@ const modes: { id: Mode; name: string; description: string }[] = [
 ];
 const navigation = [
   ["Home", Home],
-  ["Upload Media", UploadCloud],
   ["My Library", FolderHeart],
   ["Favorites", Heart],
-  ["Export", Download],
   ["Learning Tools", GraduationCap],
   ["Settings", Settings],
 ] as const;
@@ -796,7 +794,7 @@ export default function App() {
             </p>
           </Panel>
           <ExportPanel project={project} target={target} notify={setNotice} />
-          
+
           <div className="privacy-note">
             <CheckCircle2 size={15} />
             <span>
