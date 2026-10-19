@@ -4,7 +4,7 @@
 
 A complete local application for learning from uploaded video and audio: timed transcription, sentence translation, generated speech, and an interactive bilingual player that pauses the video while the translated voice speaks.
 
-![Hero](frontend\public\hero_live_web.png)
+![Hero](frontend/public/hero_live_web.png)
 
 ## Features and problem statement
 
