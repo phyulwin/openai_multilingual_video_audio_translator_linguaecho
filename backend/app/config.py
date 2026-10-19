@@ -4,7 +4,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parents[2]
-load_dotenv(ROOT / '.env')
+# Explicit local settings take precedence over keys inherited from the launcher.
+load_dotenv(ROOT / '.env', override=True)
 SUPPORTED = 'af ar hy az be bs bg ca zh hr cs da nl en et fi fr gl de el he hi hu is id it ja kn kk ko lv lt mk ms mr mi ne no fa pl pt ro ru sr sk sl es sw sv tl ta th tr uk ur vi cy'.split()
 VOICES = 'alloy ash ballad coral echo fable nova onyx sage shimmer verse marin cedar'.split()
 

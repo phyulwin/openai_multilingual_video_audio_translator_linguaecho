@@ -22,4 +22,10 @@ The browser tests use local fixtures and never spend API credits. No exhaustive 
 
 ## Reproduce
 
+### Follow-up configuration fix and successful live verification
+
+The root `.env` now overrides inherited environment values; `.env.example` is never loaded. An inherited key differed from the user's configured key, and older Windows server instances were sharing the same port. Startup now reserves the port exclusively before constructing workers, preventing duplicate servers from accepting requests with stale configuration.
+
+After stopping the stale instances and restarting with the user's `.env` key, a real eight-second Japanese fixture completed the live transcription → English translation → speech pipeline: three timed sentences, three translations, and three generated speech files, with HTTP 200 for a generated audio download. This supersedes the earlier quota-blocked live result above; it is a small integration check, not an all-language quality or load test. The temporary check project was deleted after verification.
+
 Use the commands in README. Keep the local backend running for Playwright; backend unit tests create isolated temporary storage. The labeled demo remains fully usable without API quota.

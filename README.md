@@ -62,7 +62,7 @@ Alternatively, set their absolute executable paths in `.env`. This prepared work
 
 ### OpenAI and environment
 
-Set `OPENAI_API_KEY` in the server `.env` or environment, with API billing/quota and model access enabled. Restart the backend after changes. Never put secrets in frontend code. A configured key does not establish available quota.
+Set `OPENAI_API_KEY` in the server `.env` or environment, with API billing/quota and model access enabled. Values explicitly present in the root `.env` override inherited environment variables; `.env.example` is only a template and is never loaded. Restart the backend after changes. Never put secrets in frontend code. A configured key does not establish available quota.
 
 | Variable | Default / purpose |
 |---|---|
@@ -150,3 +150,29 @@ Browser timing is approximate and background tabs can throttle scheduling. Sente
 Next steps: stronger alignment, waveform editing, browser codec transcoding, background-safe audio scheduling, durable jobs, storage quotas, authenticated deployment, and multilingual human evaluation.
 
 Runtime data, credentials, databases, dependencies, and user speech are ignored by Git. Intentional offline fixtures are included. [Artwork provenance](docs/artwork.md) documents the original banner in `frontend/public/hero.png`. No publication, deployment, or GitHub push was performed.
+
+
+## Credits - Sample Videos
+
+[IMPORTANT❗Download sample videos here to test LinguaEcho today.](https://livecsupomona-my.sharepoint.com/:f:/g/personal/klwin_cpp_edu/IgC-3ijNO-gQSqtt-b_8CIsoAaBlDyofRAcKC0RqZ2xfPkI?e=tuUlr4)
+
+File: 박진섭 감독 첫 인터뷰.webm [Korean Spoken Language]
+
+[Page URL](https://commons.wikimedia.org/wiki/File:%EB%B0%95%EC%A7%84%EC%84%AD_%EA%B0%90%EB%8F%85_%EC%B2%AB_%EC%9D%B8%ED%84%B0%EB%B7%B0.webm) | [File URL](https://upload.wikimedia.org/wikipedia/commons/3/3e/%EB%B0%95%EC%A7%84%EC%84%AD_%EA%B0%90%EB%8F%85_%EC%B2%AB_%EC%9D%B8%ED%84%B0%EB%B7%B0.webm?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original
+)
+
+Attribution: FC SEOUL, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons
+
+File:【募集・採用】一般大から入隊した海上自衛隊幹部候補生に聞いてみた.webm [Japanese Spoken Language]
+
+[Page URL](https://commons.wikimedia.org/wiki/File:%E3%80%90%E5%8B%9F%E9%9B%86%E3%83%BB%E6%8E%A1%E7%94%A8%E3%80%91%E4%B8%80%E8%88%AC%E5%A4%A7%E3%81%8B%E3%82%89%E5%85%A5%E9%9A%8A%E3%81%97%E3%81%9F%E6%B5%B7%E4%B8%8A%E8%87%AA%E8%A1%9B%E9%9A%8A%E5%B9%B9%E9%83%A8%E5%80%99%E8%A3%9C%E7%94%9F%E3%81%AB%E8%81%9E%E3%81%84%E3%81%A6%E3%81%BF%E3%81%9F%E2%91%A0.webm) | [File URL](https://upload.wikimedia.org/wikipedia/commons/7/7e/%E3%80%90%E5%8B%9F%E9%9B%86%E3%83%BB%E6%8E%A1%E7%94%A8%E3%80%91%E4%B8%80%E8%88%AC%E5%A4%A7%E3%81%8B%E3%82%89%E5%85%A5%E9%9A%8A%E3%81%97%E3%81%9F%E6%B5%B7%E4%B8%8A%E8%87%AA%E8%A1%9B%E9%9A%8A%E5%B9%B9%E9%83%A8%E5%80%99%E8%A3%9C%E7%94%9F%E3%81%AB%E8%81%9E%E3%81%84%E3%81%A6%E3%81%BF%E3%81%9F%E2%91%A0.webm?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original)
+
+Attribution: 防衛省 海上自衛隊 公式チャンネル, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons
+
+File:【巴黎奥运会】徐卓一：会尽最大的努力向刘翔靠近.webm [Chinese - Mandarin Spoken Language]
+
+[Page URL](https://commons.wikimedia.org/wiki/File:%E3%80%90%E5%B7%B4%E9%BB%8E%E5%A5%A5%E8%BF%90%E4%BC%9A%E3%80%91%E5%BE%90%E5%8D%93%E4%B8%80%EF%BC%9A%E4%BC%9A%E5%B0%BD%E6%9C%80%E5%A4%A7%E7%9A%84%E5%8A%AA%E5%8A%9B%E5%90%91%E5%88%98%E7%BF%94%E9%9D%A0%E8%BF%91.webm) | [File URL](https://upload.wikimedia.org/wikipedia/commons/7/7c/%E3%80%90%E5%B7%B4%E9%BB%8E%E5%A5%A5%E8%BF%90%E4%BC%9A%E3%80%91%E5%BE%90%E5%8D%93%E4%B8%80%EF%BC%9A%E4%BC%9A%E5%B0%BD%E6%9C%80%E5%A4%A7%E7%9A%84%E5%8A%AA%E5%8A%9B%E5%90%91%E5%88%98%E7%BF%94%E9%9D%A0%E8%BF%91.webm?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=original)
+
+Attribution: 中国新闻社, CC BY 3.0 <https://creativecommons.org/licenses/by/3.0>, via Wikimedia Commons
+
+---
