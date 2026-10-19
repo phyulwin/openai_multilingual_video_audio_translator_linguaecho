@@ -129,7 +129,7 @@ Automated tests never spend API credits. Browser tests create and delete their o
 
 ## Prompt engineering
 
-Professional translator persona, multilingual few-shot examples, exact structured JSON validation, and two documented prompt versions support the CS4680 requirements. See [prompt engineering](docs/prompt-engineering.md), [evaluation cases](docs/prompt-evaluations.json), and the [under-two-minute demo script](docs/demo-script.md).
+Professional translator persona, multilingual few-shot examples, exact structured JSON validation, and two documented prompt versions. See [prompt engineering](docs/prompt-engineering.md) and [evaluation cases](docs/prompt-evaluations.json).
 
 ## Troubleshooting
 
