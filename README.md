@@ -4,6 +4,8 @@
 
 A complete local application for learning from uploaded video and audio: timed transcription, sentence translation, generated speech, and an interactive bilingual player that pauses the video while the translated voice speaks.
 
+![Hero](frontend\public\hero_live_web.png)
+
 ## Features and problem statement
 
 A student watching a Korean interview can upload the video, translate the speech into Spanish or English, and listen to each original Korean sentence followed by its AI-generated translation. This helps users understand foreign-language content while preserving the original speaker's voice and context.
