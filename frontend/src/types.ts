@@ -28,6 +28,7 @@ export interface Project {
   created_at: string;
   updated_at: string;
   media_url: string;
+  media_ticket?: string;
 }
 export interface Health {
   ai_configured: boolean;

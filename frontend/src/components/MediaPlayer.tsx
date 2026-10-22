@@ -12,6 +12,7 @@ import {
   Headphones,
 } from "lucide-react";
 import { PlaybackEngine, type Snapshot, type MediaPort } from "../playback";
+import { mediaUrl } from "../api";
 import type { Project, Mode } from "../types";
 export const time = (value: number) =>
   `${Math.floor((value || 0) / 60)
@@ -67,7 +68,7 @@ export function MediaPlayer({
       project.segments,
       mode,
       (id) =>
-        `/api/projects/${project.id}/audio/${id}?target=${encodeURIComponent(target)}&voice=${encodeURIComponent(voice)}&v=${encodeURIComponent(project.translations[target]?.audio[voice]?.[String(id)] || "")}`,
+        mediaUrl(project, `/api/projects/${project.id}/audio/${id}?target=${encodeURIComponent(target)}&voice=${encodeURIComponent(voice)}&v=${encodeURIComponent(project.translations[target]?.audio[voice]?.[String(id)] || "")}`),
       (snapshot) => {
         setState(snapshot);
         callbacks.current.onActive(snapshot.index);
@@ -89,6 +90,7 @@ export function MediaPlayer({
     };
   }, [
     project.id,
+    project.media_ticket,
     target,
     voice,
     JSON.stringify(project.segments),
@@ -136,10 +138,10 @@ export function MediaPlayer({
       >
         <video
           ref={video}
-          src={project.media_url}
+          src={mediaUrl(project, project.media_url)}
           playsInline
           preload="metadata"
-          poster="/hero.png"
+          poster={`${import.meta.env.BASE_URL}hero.png`}
           onEnded={() => engineRef.current?.mediaEnded()}
           onError={() =>
             onError(

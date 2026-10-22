@@ -23,7 +23,7 @@ class AI:
     """Wrap external services with bounded retries and explicit capability checks."""
     def __init__(self, config):
         self.config = config
-        self.client = OpenAI(api_key=config['API_KEY'] or 'unconfigured', timeout=90, max_retries=2)
+        self.client = OpenAI(api_key=config['API_KEY'] or 'unconfigured', timeout=30 if config['PRODUCTION'] else 90, max_retries=0 if config['PRODUCTION'] else 2)
 
     def transcribe(self, path, folder, duration, source, checkpoint):
         """Preserve global offsets across timestamp-capable Whisper chunks."""

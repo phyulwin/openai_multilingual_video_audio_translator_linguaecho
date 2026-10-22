@@ -9,6 +9,7 @@ from .config import configuration, ROOT
 from .services.storage import Store
 from .services.jobs import Jobs
 from .routes import api
+from .security import install_security
 
 
 def create_app(overrides=None):
@@ -20,13 +21,17 @@ def create_app(overrides=None):
     app.extensions['jobs'] = Jobs(store, app.config)
     app.register_blueprint(api)
 
+    install_security(app)
+
     @app.before_request
     def local_only():
         """Block DNS rebinding and cross-origin writes to the unauthenticated MVP."""
+        if app.config['PRODUCTION']:
+            return None
         if request.host.split(':')[0] not in ('localhost', '127.0.0.1', '[::1]'):
             return jsonify(error={'message': 'This MVP accepts localhost requests only.'}), 403
         origin = request.headers.get('Origin')
-        if origin and origin not in ('http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5000', 'http://127.0.0.1:5000'):
+        if origin and origin not in (request.host_url.rstrip('/'), 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:5000', 'http://127.0.0.1:5000'):
             return jsonify(error={'message': 'Cross-origin request rejected.'}), 403
 
     @app.errorhandler(Exception)

@@ -134,7 +134,13 @@ export default function App() {
           }
         })
         .catch((e) => {
-          if (!cancelled) fail(e.message);
+          if (!cancelled) {
+            // Stop polling expired or unreachable workspaces instead of prompting repeatedly.
+            fail(e.message);
+            setProject((current) => current?.id === id
+              ? { ...current, status: "error", message: e.message }
+              : current);
+          }
         });
     }, 1000);
     return () => {
@@ -166,13 +172,11 @@ export default function App() {
     void run(async () => {
       if (!project) return;
       engine.current?.pause();
-      setProject(
-        await api<Project>(`/projects/${project.id}/process`, "POST", {
-          source,
-          target,
-          voice,
-        }),
-      );
+      setProject({ ...project, status: "processing" });
+      const result = await api<Project>(`/projects/${project.id}/process`, "POST", {
+        source, target, voice,
+      });
+      setProject((current) => current?.id === result.id ? result : current);
     });
   const patch = async (id: string, data: unknown) => {
     const p = await api<Project>(`/projects/${id}`, "PATCH", data);
@@ -343,7 +347,7 @@ export default function App() {
             </div>
           )}
           {!health && (
-            <div className="alert">Connecting to your local workspace…</div>
+            <div className="alert">Connecting to your workspace…</div>
           )}
           {library ? (
             <Panel title={page}>
@@ -530,7 +534,7 @@ export default function App() {
                       translation to practice recall.
                     </li>
                     <li>
-                      Keep your progress with local projects and TXT, SRT, or
+                      Keep transcript copies with TXT, SRT, or
                       JSON exports.
                     </li>
                   </ol>
@@ -541,7 +545,7 @@ export default function App() {
                   </p>
                   <h3>Your media, your workspace</h3>
                   <p>
-                    Projects are saved on this computer; processing sends audio
+                    Cloud projects expire after one hour and may disappear sooner; export your text and retain your original media. Processing sends audio
                     and transcript content to OpenAI. Translated speech uses an
                     AI voice. Local demo fixtures do not call any external
                     service.
@@ -798,7 +802,7 @@ export default function App() {
           <div className="privacy-note">
             <CheckCircle2 size={15} />
             <span>
-              Saved locally. No account needed.
+              Cloud workspaces are temporary; export before leaving.
             </span>
           </div>
         </aside>

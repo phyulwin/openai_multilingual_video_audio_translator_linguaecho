@@ -133,12 +133,15 @@ describe("workspace controls", () => {
     await waitFor(() => expect(edit).toHaveBeenCalledWith(1, "Hi."));
   });
   it("exports real backend download URLs", () => {
+    // Validate downloads against either the local API or the configured cloud origin.
+    const configured = import.meta.env.VITE_API_BASE_URL || "";
+    const backend = configured.endsWith("/") ? configured.slice(0, -1) : configured;
     render(<ExportPanel project={project} target="en" notify={vi.fn()} />);
     expect(
       screen.getByRole("link", { name: /Translated subtitles/ }),
     ).toHaveAttribute(
       "href",
-      "/api/projects/test/export?target=en&format=srt&language=translated",
+      `${backend}/api/projects/test/export?target=en&format=srt&language=translated`,
     );
     expect(screen.getAllByRole("link")).toHaveLength(6);
   });

@@ -1,0 +1,11 @@
+# Exclude all content except the reviewed container inputs.
+**
+!Dockerfile
+!backend/
+!backend/app/
+!backend/app/**
+!backend/requirements-lock.txt
+!backend/cloud_run.py
+!fixtures/
+!fixtures/**
+**/__pycache__/

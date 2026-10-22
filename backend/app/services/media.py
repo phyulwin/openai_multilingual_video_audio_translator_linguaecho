@@ -39,7 +39,7 @@ def chunks(path, folder, duration, config):
         destination = Path(folder) / f'chunk-{offset}.mp3'
         run([config['FFMPEG'], '-nostdin', '-y', '-v', 'error', '-format_whitelist', 'mov,matroska,webm,mp3,wav', '-protocol_whitelist', 'file,pipe',
              '-ss', str(offset), '-i', str(path), '-t', str(min(600, duration - offset)),
-             '-map', '0:a:0', '-vn', '-ac', '1', '-ar', '16000', '-b:a', '64k', str(destination)], 180)
+             '-threads', '1', '-map', '0:a:0', '-vn', '-ac', '1', '-ar', '16000', '-b:a', '64k', str(destination)], 180)
         if destination.stat().st_size >= 24 * 1024 * 1024:
             raise ValueError('Extracted audio exceeds the provider upload limit.')
         yield offset, destination

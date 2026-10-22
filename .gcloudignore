@@ -1,0 +1,2 @@
+# Keep build uploads limited to the same allowlisted Docker context.
+#!include:.dockerignore

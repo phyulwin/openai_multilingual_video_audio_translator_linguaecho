@@ -12,3 +12,7 @@ playwright-report/
 .tools/
 *.log
 *.tsbuildinfo
+# Keep operator credential manifests and frontend environment overrides private.
+access-users*.json
+frontend/.env
+frontend/.env.local

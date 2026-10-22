@@ -3,13 +3,14 @@ import shutil
 import uuid
 from pathlib import Path
 import langcodes
-from flask import Blueprint, current_app, jsonify, request, send_file, Response
+from flask import Blueprint, current_app, jsonify, request, send_file, Response, g
 from werkzeug.utils import secure_filename
 from .config import ROOT, SUPPORTED, VOICES
 from .schemas import ProcessRequest, ProjectPatch, SegmentPatch
 from .services.media import EXTENSIONS, probe
 from .services.exports import export
 from .services.storage import now
+from .security import media_ticket
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -21,8 +22,10 @@ def resources():
 
 def public(project):
     """Expose media URLs without disclosing filesystem paths."""
-    result = {k: v for k, v in project.items() if k != 'media_file'}
+    result = {k: v for k, v in project.items() if k not in ('media_file', 'owner')}
     result['media_url'] = f'/api/projects/{project["id"]}/media'
+    if current_app.config['PRODUCTION']:
+        result['media_ticket'] = media_ticket(project)
     return result
 
 
@@ -42,7 +45,7 @@ def projects():
     """List durable projects or validate an uploaded local file."""
     store, _ = resources()
     if request.method == 'GET':
-        return jsonify([public(p) for p in store.all()])
+        return jsonify([public(p) for p in store.all() if p.get('owner') == g.owner])
     upload = request.files.get('file')
     if not upload or not upload.filename:
         raise ValueError('Choose a media file.')
@@ -56,7 +59,7 @@ def projects():
     try:
         upload.save(folder / filename)
         metadata = probe(folder / filename, current_app.config)
-        project = {'id': pid, 'name': upload.filename[:200], 'filename': secure_filename(upload.filename),
+        project = {'id': pid, 'owner': g.owner, 'name': upload.filename[:200], 'filename': secure_filename(upload.filename),
             'media_file': filename, **metadata, 'source_language': 'auto', 'segments': [], 'translations': {},
             'favorite': False, 'demo': False, 'status': 'uploaded', 'message': 'Choose languages and start processing',
             'progress': 0, 'created_at': now(), 'updated_at': now()}
@@ -93,7 +96,7 @@ def project(pid):
 @api.post('/projects/<pid>/translations')
 @api.post('/projects/<pid>/tts')
 def process(pid):
-    """Queue AI work without blocking ordinary HTTP requests."""
+    """Own production work in this request; retain the local asynchronous queue."""
     store, jobs = resources()
     project = store.get(pid)
     if project['demo']:
@@ -102,7 +105,7 @@ def process(pid):
     if project['segments'] and options.source not in ('auto', project['source_language']):
         raise ValueError('The saved source transcript is immutable. Upload a new project to transcribe a different source language.')
     jobs.start(pid, options, request.path.endswith('/tts'))
-    return jsonify(public(store.get(pid))), 202
+    return jsonify(public(store.get(pid))), 200 if current_app.config['REQUEST_JOBS'] else 202
 
 
 @api.post('/projects/<pid>/cancel')
@@ -191,17 +194,22 @@ def demo():
     pid = uuid.uuid4().hex
     project = json.loads((source / 'demo.json').read_text(encoding='utf-8'))
     folder = current_app.config['UPLOADS'] / pid
-    folder.mkdir()
-    shutil.copy2(source / 'demo.mp4', folder / 'original.mp4')
-    for target, translation in project['translations'].items():
-        references = {}
-        for segment in project['segments']:
-            sid = str(segment['id'])
-            relative = Path(pid) / target / 'coral' / f'{sid}.wav'
-            destination = current_app.config['AUDIO'] / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(source / f'{target}-{sid}.wav', destination)
-            references[sid] = relative.as_posix()
-        translation['audio'] = {'coral': references}
-    project.update(id=pid, media_file='original.mp4', created_at=now(), updated_at=now())
-    return jsonify(public(store.save(project))), 201
+    try:
+        folder.mkdir()
+        shutil.copy2(source / 'demo.mp4', folder / 'original.mp4')
+        for target, translation in project['translations'].items():
+            references = {}
+            for segment in project['segments']:
+                sid = str(segment['id'])
+                relative = Path(pid) / target / 'coral' / f'{sid}.wav'
+                destination = current_app.config['AUDIO'] / relative
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source / f'{target}-{sid}.wav', destination)
+                references[sid] = relative.as_posix()
+            translation['audio'] = {'coral': references}
+        project.update(id=pid, owner=g.owner, media_file='original.mp4', created_at=now(), updated_at=now())
+        return jsonify(public(store.save(project))), 201
+    except Exception:
+        for root in (current_app.config['UPLOADS'], current_app.config['AUDIO']):
+            shutil.rmtree(root / pid, ignore_errors=True)
+        raise

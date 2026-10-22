@@ -187,7 +187,7 @@ button:hover:not(:disabled) {
 .hero {
   height: 320px;
   position: relative;
-  background: #f4dfbd url("/hero.png") center 48% / cover;
+  background: #f4dfbd url("../public/hero.png") center 48% / cover;
   overflow: hidden;
   border-bottom: 3px double #9f7764;
 }
@@ -429,7 +429,7 @@ main {
   height: 213px;
   background:
     linear-gradient(0deg, #fcf0d5 15%, transparent 65%),
-    url("/hero.png") 32% center/auto 100%;
+    url("../public/hero.png") 32% center/auto 100%;
   border: 1px solid #d8b28e;
   border-radius: 4px;
   display: flex;
@@ -905,7 +905,7 @@ progress {
   height: 276px;
   background:
     linear-gradient(90deg, #213e38e8, #23473c6b 65%, #243e3d15),
-    url("/hero.png") 70% center/auto 100%;
+    url("../public/hero.png") 70% center/auto 100%;
   display: flex;
   align-items: center;
   padding: 30px;
@@ -1112,7 +1112,7 @@ progress {
   min-width: 45px;
   border: 1px solid #c6b9a7;
   border-radius: 4px;
-  background: url("/hero.png") 84% center/auto 100%;
+  background: url("../public/hero.png") 84% center/auto 100%;
 }
 .file-thumb.audio {
   display: flex;
@@ -1301,7 +1301,7 @@ progress {
   justify-content: center;
   background:
     linear-gradient(90deg, #315c4599, #315c4511),
-    url("/hero.png") center/cover;
+    url("../public/hero.png") center/cover;
   color: #fff;
 }
 .library-art svg {

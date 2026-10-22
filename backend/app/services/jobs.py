@@ -1,6 +1,7 @@
 # jobs.py — Single-worker local job queue with cooperative cancellation.
 import logging
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from openai import AuthenticationError, PermissionDeniedError, RateLimitError, APIConnectionError, APITimeoutError, BadRequestError, NotFoundError
 from .ai import AI
@@ -41,14 +42,18 @@ class Jobs:
         with self.lock:
             if pid in self.active:
                 raise RuntimeError('This project already has an active job.')
-            if len(self.active) >= 4:
+            if len(self.active) >= (1 if self.config['REQUEST_JOBS'] else 4):
                 raise RuntimeError('Processing queue is full; wait for a job to finish.')
             if not self.config['API_KEY']:
                 raise ValueError('Set OPENAI_API_KEY in the server .env file, or open the clearly labeled demo.')
             self.store.update(pid, lambda p: p.update(status='queued', progress=0, message='Waiting for worker'))
             event = threading.Event()
             self.active[pid] = event
-            self.executor.submit(self.run, pid, options, event, speech_only)
+            if not self.config['REQUEST_JOBS']:
+                self.executor.submit(self.run, pid, options, event, speech_only)
+                return
+        # Production work remains inside its HTTP request; polling/cancel use other threads.
+        self.run(pid, options, event, speech_only)
 
     def cancel(self, pid):
         """Cancel at the next checkpoint; an in-flight API call may finish first."""
@@ -58,7 +63,14 @@ class Jobs:
 
     def run(self, pid, options, event, speech_only):
         """Persist each completed stage so failures can resume without retranscribing."""
+        deadline = time.monotonic() + self.config['JOB_SECONDS']
         def checkpoint(message, progress):
+            # Bound each attempt and preserve completed stages for an explicit retry.
+            if self.config['REQUEST_JOBS'] and time.monotonic() >= deadline:
+                raise ValueError('Processing time limit reached; retry to resume completed stages while this workspace exists.')
+            if self.config['PRODUCTION']:
+                from ..security import check_capacity
+                check_capacity(self.config)
             if event.is_set():
                 raise InterruptedError('Processing cancelled.')
             self.store.update(pid, lambda p: p.update(status='processing', message=message, progress=progress))
@@ -98,5 +110,10 @@ class Jobs:
             message = failure_message(exc)
             self.store.update(pid, lambda p: p.update(status='error', message=message))
         finally:
-            with self.lock:
-                self.active.pop(pid, None)
+            # Remove extraction leftovers even when FFmpeg fails before yielding a chunk.
+            try:
+                for chunk in (self.config['UPLOADS'] / pid).glob('chunk-*.mp3'):
+                    chunk.unlink(missing_ok=True)
+            finally:
+                with self.lock:
+                    self.active.pop(pid, None)
