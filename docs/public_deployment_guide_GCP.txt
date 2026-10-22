@@ -1,0 +1,230 @@
+PUBLIC DEPLOYMENT GUIDE
+
+Replace every [PLACEHOLDER] with your own value. These commands use PowerShell on Windows. Follow your project's DEPLOYMENT.md wherever it gives project-specific requirements.
+
+4. CONFIGURE YOUR BACKEND
+
+1. Select a Google Cloud project
+
+Open Google Cloud Console and select your project or create one. Copy its Project ID and make sure billing is enabled.
+
+2. Install Google Cloud CLI
+
+Install Google Cloud CLI for Windows. Open PowerShell in your project folder and run:
+
+gcloud --version
+
+3. Connect PowerShell to Google Cloud
+
+gcloud auth login
+$gcpProject = '[YOUR_GCP_PROJECT_ID]'
+$region = '[YOUR_REGION]'
+gcloud config set project $gcpProject
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com iam.googleapis.com
+
+4. Create backend resources
+
+$registry = '[YOUR_ARTIFACT_REGISTRY_REPOSITORY]'
+$runtimeName = '[YOUR_RUNTIME_SERVICE_ACCOUNT_NAME]'
+gcloud artifacts repositories create $registry --repository-format=docker --location=$region
+gcloud iam service-accounts create $runtimeName --display-name='[YOUR_APP_NAME] runtime'
+$runtimeAccount = "$runtimeName@$gcpProject.iam.gserviceaccount.com"
+
+If a resource already exists, reuse it; do not create a duplicate.
+
+5. Create access tokens
+
+$accessSecret = '[YOUR_ACCESS_USERS_SECRET_NAME]'
+$accessManifest = Join-Path $env:TEMP '[YOUR_ACCESS_MANIFEST_FILENAME].json'
+.venv/Scripts/python.exe scripts/create_access_users.py --output $accessManifest [USER_ID_1] [USER_ID_2]
+gcloud secrets create $accessSecret --replication-policy=automatic --data-file=$accessManifest
+
+Replace the user IDs with identifiers for intended users. Save each generated token privately; each user needs their own token. A user ID such as "public" is only an identifier and does not allow unauthenticated access.
+
+If the script says the manifest already exists, choose a new filename and run it again. The script protects existing tokens by refusing to overwrite the file.
+
+6. Store your OpenAI API key
+
+Use an existing API key or create one in the OpenAI API dashboard. Store it in Google Secret Manager:
+
+$openaiSecret = '[YOUR_OPENAI_SECRET_NAME]'
+$keyFile = Join-Path $env:TEMP '[YOUR_TEMP_KEY_FILENAME].txt'
+$secureKey = Read-Host 'OpenAI project API key' -AsSecureString
+try {
+    $credential = [System.Net.NetworkCredential]::new('', $secureKey)
+    [System.IO.File]::WriteAllText($keyFile, $credential.Password, [System.Text.UTF8Encoding]::new($false))
+    gcloud secrets create $openaiSecret --replication-policy=automatic --data-file=$keyFile
+} finally {
+    Remove-Item -LiteralPath $keyFile -ErrorAction SilentlyContinue
+    Remove-Variable credential,secureKey -ErrorAction SilentlyContinue
+}
+
+PowerShell prompts for the key. It is stored in Secret Manager, not in your GitHub repository. If the secret already exists, add a version instead of creating it again:
+
+gcloud secrets versions add $openaiSecret --data-file='[PATH_TO_KEY_FILE]'
+
+7. Allow the backend to read the secrets
+
+$runtimeAccount = "[YOUR_RUNTIME_SERVICE_ACCOUNT_NAME]@$gcpProject.iam.gserviceaccount.com"
+gcloud secrets add-iam-policy-binding $openaiSecret --member="serviceAccount:$runtimeAccount" --role=roles/secretmanager.secretAccessor
+gcloud secrets add-iam-policy-binding $accessSecret --member="serviceAccount:$runtimeAccount" --role=roles/secretmanager.secretAccessor
+
+8. Configure logging privacy
+
+In Google Cloud Console, open Logging > Log Router and edit the _Default log sink. Add an exclusion named [YOUR_LOG_EXCLUSION_NAME] with this filter:
+
+resource.type="cloud_run_revision" resource.labels.service_name="[YOUR_CLOUD_RUN_SERVICE_NAME]" log_id("run.googleapis.com/requests")
+
+Set the exclusion percentage to 100% and save. Check any additional log sinks separately. This prevents default request logging from retaining temporary signed media URLs.
+
+9. Check setup
+
+[ ] Google Cloud project selected and billing enabled
+[ ] Google Cloud CLI installed
+[ ] Required APIs enabled
+[ ] Artifact Registry repository created
+[ ] Runtime service account created
+[ ] Access tokens saved privately
+[ ] OpenAI API key stored in Secret Manager
+[ ] Secret access permissions granted
+[ ] Request-log exclusion configured
+
+Your Google Cloud environment is configured. The backend is not deployed until Section 5 is complete.
+
+TROUBLESHOOTING: SECRET NOT FOUND
+
+A 404 means the secret was not found in the currently selected project, or its name is incorrect. Check:
+
+gcloud config get-value project
+gcloud secrets list
+
+If the secret is missing, create it using the instructions above. If it exists, confirm the project and secret name, then grant access again:
+
+$gcpProject = gcloud config get-value project
+$runtimeAccount = "[YOUR_RUNTIME_SERVICE_ACCOUNT_NAME]@$gcpProject.iam.gserviceaccount.com"
+gcloud secrets add-iam-policy-binding [YOUR_SECRET_NAME] --member="serviceAccount:$runtimeAccount" --role=roles/secretmanager.secretAccessor
+
+If the access manifest file already exists, choose a different filename. If the secret already exists, add a secret version instead of creating the secret again.
+
+5. DEPLOY YOUR BACKEND
+
+1. Start Docker
+
+Open Docker Desktop and wait for the engine to show as running. In PowerShell, run:
+
+docker info
+
+2. Set project and deployment values
+
+$gcpProject = gcloud config get-value project
+$region = '[YOUR_REGION]'
+$registry = '[YOUR_ARTIFACT_REGISTRY_REPOSITORY]'
+$serviceName = '[YOUR_CLOUD_RUN_SERVICE_NAME]'
+$runtimeName = '[YOUR_RUNTIME_SERVICE_ACCOUNT_NAME]'
+$runtimeAccount = "$runtimeName@$gcpProject.iam.gserviceaccount.com"
+$openaiSecret = '[YOUR_OPENAI_SECRET_NAME]'
+$accessSecret = '[YOUR_ACCESS_USERS_SECRET_NAME]'
+
+Confirm the selected project is where you created the secrets. Check they exist:
+
+gcloud secrets list
+
+Confirm the required secrets are listed before deploying.
+
+3. Build and upload the Docker image
+
+gcloud auth configure-docker "$region-docker.pkg.dev"
+$image = "$region-docker.pkg.dev/$gcpProject/$registry/api:v1"
+docker build --platform linux/amd64 -t $image .
+docker push $image
+
+If prompted, confirm Docker authentication. Wait for a successful push and image digest.
+
+4. Deploy to Cloud Run
+
+Use the configuration from Section 5 of your DEPLOYMENT.md. Example:
+
+gcloud run deploy $serviceName --image=$image --region=$region `
+  --service-account=$runtimeAccount --allow-unauthenticated --ingress=all `
+  --execution-environment=gen2 --port=8080 --no-use-http2 `
+  --cpu=1 --memory=2Gi --concurrency=8 --timeout=600 `
+  --min=0 --max=1 --min-instances=0 --max-instances=1 --cpu-throttling `
+  --env-vars-file='[PATH_TO_CLOUD_RUN_ENV_FILE]' `
+  --set-secrets="OPENAI_API_KEY=${openaiSecret}:1,ACCESS_USERS=${accessSecret}:1" `
+  --add-volume="name=workspace,type=in-memory,size-limit=512Mi" `
+  --add-volume-mount="volume=workspace,mount-path=[YOUR_TEMP_WORKSPACE_PATH]"
+
+This creates a potentially billable Cloud Run service. It is publicly reachable, but the application still requires access tokens. Uploaded videos, audio, and project data are temporary. OpenAI API use can incur charges when authorized users process media.
+
+5. Get and save the backend URL
+
+$backendUrl = gcloud run services describe $serviceName --region=$region --format='value(status.url)'
+Write-Host $backendUrl
+
+Save the URL returned by Google Cloud. It should look like:
+
+https://[YOUR_CLOUD_RUN_SERVICE]-[GENERATED_ID].[YOUR_REGION].run.app
+
+6. Test the backend
+
+Invoke-RestMethod "$backendUrl/api/health"
+
+The response should indicate the backend is running and confirm required tools such as FFmpeg and FFprobe are available and an OpenAI key is configured. This does not prove a paid OpenAI request will succeed.
+
+If PowerShell reports an invalid URI, $backendUrl may be empty in the current window. Set it manually to the exact HTTPS URL printed by Cloud Run, then test again:
+
+$backendUrl = '[YOUR_CLOUD_RUN_BACKEND_URL]'
+Invoke-RestMethod "$backendUrl/api/health"
+
+Step 5 is complete when the image uploads, Cloud Run deploys successfully, the health endpoint responds, and you have saved the backend URL. Next, use it for GitHub Pages.
+
+6. PUBLISH YOUR FRONTEND WITH GITHUB PAGES
+
+1. Push your changes to GitHub
+
+Open PowerShell in your project folder:
+
+git status
+
+Check that .env files, API keys, access tokens, databases, and uploaded videos are not listed. Then commit and push:
+
+git add .
+git commit -m "Prepare frontend for GitHub Pages and Cloud Run"
+git push origin [YOUR_BRANCH_NAME]
+
+Do not include private files in the commit.
+
+2. Enable GitHub Pages
+
+Open your GitHub repository. Go to Settings > Pages. Under Build and deployment, set Source to GitHub Actions. Do not select a branch there if the repository uses the prepared Actions workflow. Confirm the workflow exists in the repository.
+
+3. Add your Cloud Run URL to GitHub
+
+Go to Settings > Secrets and variables > Actions > Variables > New repository variable.
+
+Name: VITE_API_BASE_URL
+Value: [YOUR_CLOUD_RUN_BACKEND_URL]
+
+The backend URL is public configuration, so use a repository variable. Never put an OpenAI API key or access token here.
+
+4. Run the GitHub Pages workflow
+
+Open the Actions tab. Select [YOUR_FRONTEND_DEPLOYMENT_WORKFLOW_NAME]. Click Run workflow, choose [YOUR_BRANCH_NAME], then click Run workflow again.
+
+Pushing code alone may not publish the website if the workflow is configured for manual releases.
+
+5. Check the deployment
+
+Open the latest Actions run. A green checkmark means it succeeded; open the failed job if it shows a red X.
+
+The Pages address usually looks like:
+
+https://[YOUR_GITHUB_USERNAME].github.io/[YOUR_REPOSITORY_NAME]/
+
+Use the URL shown in Settings > Pages if it differs.
+
+6. Test the live website
+
+Open the published site, enter an authorized access token if required, and test with a short video or other small sample. Confirm the app's expected behavior.
+
+The deployment is complete when the live site works with the Cloud Run backend.
